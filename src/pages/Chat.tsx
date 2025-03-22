@@ -198,8 +198,16 @@ export default function Chat() {
 
   return (
     <div style={{
+      width: '100%',
+      minHeight: '100vh',
+      backgroundColor: '#008080', // Windows 95 blue/teal background
+      padding: '20px',
+      boxSizing: 'border-box' as const
+    }}>
+    <div style={{
       ...win95.container,
       width: windowWidth < 600 ? '95%' : '800px',
+      margin: '0 auto'
     }}>
       <div style={win95.titleBar}>
         <h1 style={win95.titleText}>Chat Room</h1>
@@ -234,8 +242,8 @@ export default function Chat() {
                 flex: '1',
                 padding: windowWidth < 600 ? '10px 0' : '0'
               }}>
-                <p style={win95.text}>Chatting as this character</p>
-                <p style={win95.text}>Use the form below to send messages that will appear in the Dollhouse.</p>
+                <p style={win95.text}>Chatting as this character!</p>
+                <p style={win95.text}>Use the form below to send messages that will appear in the chat room!</p>
               </div>
             </div>
           </div>
@@ -291,6 +299,7 @@ export default function Chat() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

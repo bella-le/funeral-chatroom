@@ -127,9 +127,16 @@ export default function CharacterCreator() {
   );
 
   return (
+    <div style={{
+      width: '100%',
+      minHeight: '100vh',
+      backgroundColor: '#008080', // Windows 95 blue/teal background
+      padding: '20px',
+      boxSizing: 'border-box' as const
+    }}>
     <div style={{ 
       maxWidth: '800px', 
-      margin: '20px auto', 
+      margin: '0 auto', 
       padding: '0', 
       fontFamily: 'Tahoma, Arial, sans-serif',
       backgroundColor: '#D4D0C8',
@@ -312,6 +319,7 @@ export default function CharacterCreator() {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

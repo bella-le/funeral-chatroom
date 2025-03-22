@@ -1,5 +1,17 @@
 // Windows 95/XP style components for reuse across the application
 
+// Windows 95 color palette
+export const win95Colors = {
+  background: '#D4D0C8',  // Standard gray background
+  windowsBlue: '#008080',  // Windows 95 teal/blue
+  darkBlue: '#000080',    // Windows 95 dark blue
+  titleBarBlue: '#0A246A', // Title bar blue
+  white: '#FFFFFF',
+  black: '#000000',
+  darkGray: '#808080',
+  lightGray: '#D3D3D3'
+};
+
 export const win95 = {
   // Container styles
   container: {
