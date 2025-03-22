@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Page</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .heading {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #3182ce;
+        }
+        pre {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Diagnostic Page</h1>
+    <p>This is a static HTML page that bypasses React rendering to help diagnose issues.</p>
+
+    <div class="card">
+        <div class="heading">1. Check Console Logs</div>
+        <p>Open your browser's developer tools (F12 or right-click and select "Inspect") and check the Console tab for errors.</p>
+    </div>
+
+    <div class="card">
+        <div class="heading">2. Check Supabase Connection</div>
+        <p>Click the button below to test your Supabase connection:</p>
+        <button id="testSupabase" class="btn">Test Supabase Connection</button>
+        <div id="supabaseResult" style="margin-top: 1rem;"></div>
+    </div>
+
+    <div class="card">
+        <div class="heading">3. Environment Variables</div>
+        <p>Checking environment variables (will only show if they exist, not the actual values):</p>
+        <pre id="envVars">Loading...</pre>
+    </div>
+
+    <script>
+        // Load the Supabase JS client from CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js';
+        script.onload = initDebugPage;
+        document.head.appendChild(script);
+
+        function initDebugPage() {
+            document.getElementById('envVars').textContent = 'Supabase JS loaded successfully.\n\nNote: Cannot check .env variables from static HTML.\nPlease use the Test Connection button instead.';
+            
+            document.getElementById('testSupabase').addEventListener('click', async () => {
+                const resultEl = document.getElementById('supabaseResult');
+                resultEl.innerHTML = 'Testing connection...'
+                
+                try {
+                    // Get URL params if provided for testing
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlFromParam = urlParams.get('url');
+                    const keyFromParam = urlParams.get('key');
+                    
+                    // For security reasons we're not showing the actual values
+                    const url = urlFromParam || prompt('Enter your Supabase URL', 'https://your-project.supabase.co');
+                    const key = keyFromParam || prompt('Enter your Supabase anon key', 'your-anon-key');
+                    
+                    if (!url || !key) {
+                        resultEl.innerHTML = '<span style="color: red">Cancelled or empty credentials</span>';
+                        return;
+                    }
+                    
+                    // Create Supabase client
+                    const supabase = supabaseClient.createClient(url, key);
+                    
+                    // Test query
+                    resultEl.innerHTML = 'Querying Supabase...';
+                    
+                    // Try to query the characters table
+                    const { data: characterCount, error: characterError } = await supabase
+                        .from('characters')
+                        .select('count');
+                        
+                    if (characterError) {
+                        if (characterError.code === '42P01') { // Table doesn't exist error
+                            resultEl.innerHTML = `<span style="color: orange">Warning: 'characters' table doesn't exist. Have you created the required tables?</span>`;
+                        } else {
+                            resultEl.innerHTML = `<span style="color: red">Error: ${characterError.message}</span>`;
+                        }
+                        return;
+                    }
+                    
+                    resultEl.innerHTML = `<span style="color: green">Connection successful! Found characters table.</span>`;
+                } catch (err) {
+                    resultEl.innerHTML = `<span style="color: red">Error: ${err.message}</span>`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
