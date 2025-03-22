@@ -13,7 +13,7 @@ export default function Dollhouse() {
   // State management
   const [characters, setCharacters] = useState<Character[]>([]);
   const [activeCharacters, setActiveCharacters] = useState<Character[]>([]);
-  const [messages, setMessages] = useState<MessageWithCharacter[]>([]);
+  const [, setMessages] = useState<MessageWithCharacter[]>([]);
   const [recentMessages, setRecentMessages] = useState<{[key: string]: DisplayMessage}>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -77,11 +77,13 @@ export default function Dollhouse() {
       setMessages(prev => [newMessage, ...prev]);
       
       // Add to recent messages for display
-      const updatedMessages = messageManager.addMessage(newMessage.character.id, newMessage.content);
-      setRecentMessages(updatedMessages);
+      if (newMessage.character?.id) {
+        const updatedMessages = messageManager.addMessage(newMessage.character.id, newMessage.content);
+        setRecentMessages(updatedMessages);
       
-      // Update character activity
-      activityManager.updateActivity(newMessage.character.id);
+        // Update character activity
+        activityManager.updateActivity(newMessage.character.id);
+      }
     };
     
     // Handle new characters
@@ -103,92 +105,6 @@ export default function Dollhouse() {
       supabaseService.cleanup();
     };
   }, [messageManager, activityManager]);
-
-  // Helper function to render a character in the dollhouse
-  const renderCharacter = (character: Character) => {
-    const message = recentMessages[character.id || ''];
-    
-    // Debug output to check if messages are being associated with characters
-    console.log(`Rendering character ${character.name} (${character.id})`, 
-      message ? `with message: ${message.content}` : 'without message');
-    
-    return (
-      <CharacterComponent 
-        key={character.id}
-        character={character}
-        message={message}
-      />
-    );
-  };
-
-  // Helper function to render the message history
-  const renderMessageHistory = () => {
-    return (
-      <div style={{ 
-        maxHeight: '400px', 
-        overflowY: 'auto' as const, 
-        padding: '8px',
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #808080',
-        borderTop: '2px solid #FFFFFF',
-        borderLeft: '2px solid #FFFFFF',
-      }}>
-        {messages.map(message => {
-          const { body, hair, outfit } = message.character?.avatar_config || {};
-          
-          return (
-            <div 
-              key={message.id} 
-              style={{
-                display: 'flex' as const,
-                padding: '8px',
-                marginBottom: '8px',
-                backgroundColor: '#F0F0F0',
-                border: '1px solid #808080',
-                borderTop: '2px solid #FFFFFF',
-                borderLeft: '2px solid #FFFFFF',
-              }}
-            >
-              {/* Mini avatar */}
-              <div style={{
-                width: '40px',
-                height: '40px',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #808080',
-                borderTop: '1px solid #404040',
-                borderLeft: '1px solid #404040',
-                position: 'relative' as const,
-                overflow: 'hidden' as const,
-                marginRight: '8px'
-              }}>
-                {/* Simplified avatar for messages */}
-                <div style={{ 
-                  position: 'absolute' as const, 
-                  top: '0', 
-                  left: '0', 
-                  width: '100%', 
-                  height: '100%',
-                  display: 'flex' as const,
-                  alignItems: 'center' as const,
-                  justifyContent: 'center' as const,
-                  fontSize: '8px' as const,
-                  color: '#000'
-                }}>
-                  {body}
-                </div>
-              </div>
-              <div style={{ flex: '1' }}>
-                <p style={win95.textBold}>
-                  {message.character?.name}
-                </p>
-                <p style={win95.text}>{message.content}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -263,7 +179,13 @@ export default function Dollhouse() {
             <p style={win95.text}>No characters have joined yet</p>
           </div>
         ) : (
-          activeCharacters.map(renderCharacter)
+          activeCharacters.map((character) => (
+            <CharacterComponent 
+              key={character.id}
+              character={character}
+              message={recentMessages[character.id || '']}
+            />
+          ))
         )}
       </div>
     </div>

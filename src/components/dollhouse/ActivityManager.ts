@@ -20,6 +20,8 @@ export class ActivityManager {
     
     messages.forEach(msg => {
       const characterId = msg.character_id;
+      if (!characterId) return; // Skip if no character ID
+      
       const messageTime = new Date(msg.created_at || Date.now()).getTime();
       
       // Update the last activity time if this message is more recent
@@ -87,7 +89,9 @@ export class ActivityManager {
   /**
    * Check if a character is active
    */
-  isCharacterActive(characterId: string): boolean {
+  isCharacterActive(characterId: string | undefined): boolean {
+    if (!characterId) return true; // Consider characters without IDs as active
+    
     const now = Date.now();
     const activity = this.activityRecords.find(a => a.characterId === characterId);
     
@@ -98,7 +102,7 @@ export class ActivityManager {
   /**
    * Filter active characters
    */
-  filterActiveCharacters<T extends { id: string }>(characters: T[]): T[] {
+  filterActiveCharacters<T extends { id?: string }>(characters: T[]): T[] {
     return characters.filter(character => this.isCharacterActive(character.id));
   }
 }

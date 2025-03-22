@@ -14,23 +14,29 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
     params: {
       eventsPerSecond: 10
-    },
-    // Enable real-time for specific tables
-    channels: {
-      "public:messages": {
-        table: "messages",
-        schema: "public"
-      },
-      "public:characters": {
-        table: "characters",
-        schema: "public"
-      }
     }
   },
   db: {
     schema: 'public'
   }
 });
+
+// Set up realtime subscriptions for tables
+supabase.channel('public:messages')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'messages'
+  }, () => {})
+  .subscribe();
+
+supabase.channel('public:characters')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'characters'
+  }, () => {})
+  .subscribe();
 
 // Define types for our database models
 export type Character = {
