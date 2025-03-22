@@ -130,11 +130,18 @@ export default function Chat() {
         content: message.trim()
       };
       
-      const { error } = await supabase
+      console.log('Sending message:', newMessage);
+      
+      // Insert the message with returning option to get the complete record
+      const { data, error } = await supabase
         .from('messages')
-        .insert(newMessage);
+        .insert(newMessage)
+        .select()
+        .single();
         
       if (error) throw error;
+      
+      console.log('Message sent successfully:', data);
       
       // Clear input after successful send
       setMessage('');

@@ -10,7 +10,27 @@ console.log('ENV check - VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL 
 console.log('ENV check - VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'exists' : 'missing');
 
 // Create a single supabase client for interacting with your database
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    },
+    // Enable real-time for specific tables
+    channels: {
+      "public:messages": {
+        table: "messages",
+        schema: "public"
+      },
+      "public:characters": {
+        table: "characters",
+        schema: "public"
+      }
+    }
+  },
+  db: {
+    schema: 'public'
+  }
+});
 
 // Define types for our database models
 export type Character = {
