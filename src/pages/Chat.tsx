@@ -1,18 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Box, Button, Container, Flex, Heading, Input, Text, VStack, HStack } from '@chakra-ui/react';
-import { Avatar } from '@chakra-ui/avatar';
-import { useToast } from '@chakra-ui/toast';
 import { supabase, type Character, type Message } from '../supabase';
+import { win95 } from '../styles/win95';
 
 export default function Chat() {
   const { characterId } = useParams<{ characterId: string }>();
-  const toast = useToast();
   const [message, setMessage] = useState('');
   const [character, setCharacter] = useState<Character | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState('');
   const maxLength = 255;
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    // Handle window resize for responsiveness
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Fetch character data
@@ -31,20 +40,82 @@ export default function Chat() {
         setCharacter(data);
       } catch (error) {
         console.error('Error fetching character:', error);
-        toast({
-          title: 'Error',
-          description: 'Could not find your character.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+        setError('Could not find your character.');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchCharacter();
-  }, [characterId, toast]);
+  }, [characterId]);
+
+  const renderAvatar = () => {
+    if (!character || !character.avatar_config) return null;
+    
+    // Get the avatar parts from the character's configuration
+    const { body, hair, outfit } = character.avatar_config;
+    
+    return (
+      <div style={{
+        width: windowWidth < 600 ? '120px' : '180px',
+        height: windowWidth < 600 ? '120px' : '180px',
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #808080',
+        borderTop: '1px solid #404040',
+        borderLeft: '1px solid #404040',
+        position: 'relative' as const,
+        overflow: 'hidden' as const
+      }}>
+        {/* Body */}
+        <div style={{ 
+          position: 'absolute' as const, 
+          top: '0', 
+          left: '0', 
+          width: '100%', 
+          height: '100%',
+          display: 'flex' as const,
+          alignItems: 'center' as const,
+          justifyContent: 'center' as const,
+          fontSize: '10px' as const,
+          color: '#000'
+        }}>
+          {body}
+        </div>
+        
+        {/* Hair */}
+        <div style={{ 
+          position: 'absolute' as const, 
+          top: '0', 
+          left: '0', 
+          width: '100%', 
+          height: '40%',
+          display: 'flex' as const,
+          alignItems: 'center' as const,
+          justifyContent: 'center' as const,
+          fontSize: '10px' as const,
+          color: '#000'
+        }}>
+          {hair}
+        </div>
+        
+        {/* Outfit */}
+        <div style={{ 
+          position: 'absolute' as const, 
+          bottom: '0', 
+          left: '0', 
+          width: '100%', 
+          height: '50%',
+          display: 'flex' as const,
+          alignItems: 'center' as const,
+          justifyContent: 'center' as const,
+          fontSize: '10px' as const,
+          color: '#000'
+        }}>
+          {outfit}
+        </div>
+      </div>
+    );
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +123,7 @@ export default function Chat() {
     if (!message.trim() || !characterId) return;
     
     setIsSending(true);
+    setError('');
     try {
       const newMessage: Message = {
         character_id: characterId,
@@ -66,22 +138,9 @@ export default function Chat() {
       
       // Clear input after successful send
       setMessage('');
-      
-      toast({
-        title: 'Message sent',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to send message. Please try again.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      setError('Failed to send message. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -89,80 +148,142 @@ export default function Chat() {
 
   if (isLoading) {
     return (
-      <Container centerContent py={10}>
-        <Text>Loading...</Text>
-      </Container>
+      <div style={{
+        ...win95.container,
+        width: windowWidth < 600 ? '95%' : '800px',
+      }}>
+        <div style={win95.titleBar}>
+          <h1 style={win95.titleText}>Chat Room</h1>
+          <div style={win95.windowControls}>
+            <button type="button" style={win95.windowButton}>_</button>
+            <button type="button" style={win95.windowButton}>×</button>
+          </div>
+        </div>
+        <div style={win95.contentArea}>
+          <p style={win95.text}>Loading...</p>
+        </div>
+      </div>
     );
   }
 
   if (!character) {
     return (
-      <Container centerContent py={10}>
-        <Text mb={4}>Character not found or you haven't created one yet.</Text>
-        <Button as={Link} to="/" colorScheme="blue">
-          Create a Character
-        </Button>
-      </Container>
+      <div style={{
+        ...win95.container,
+        width: windowWidth < 600 ? '95%' : '800px',
+      }}>
+        <div style={win95.titleBar}>
+          <h1 style={win95.titleText}>Chat Room</h1>
+          <div style={win95.windowControls}>
+            <button type="button" style={win95.windowButton}>_</button>
+            <button type="button" style={win95.windowButton}>×</button>
+          </div>
+        </div>
+        <div style={win95.contentArea}>
+          <p style={win95.text}>Character not found or you haven't created one yet.</p>
+          <Link to="/">
+            <button style={win95.button}>Create a Character</button>
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container maxW="container.md" py={8}>
-      <VStack spacing={6} align="stretch">
-        <Flex justify="space-between" align="center">
-          <Heading size="lg">Chat Room</Heading>
-          <Button as={Link} to="/dollhouse" size="sm" colorScheme="teal">
-            View Dollhouse
-          </Button>
-        </Flex>
+    <div style={{
+      ...win95.container,
+      width: windowWidth < 600 ? '95%' : '800px',
+    }}>
+      <div style={win95.titleBar}>
+        <h1 style={win95.titleText}>Chat Room</h1>
+        <div style={win95.windowControls}>
+          <button type="button" style={win95.windowButton}>_</button>
+          <button type="button" style={win95.windowButton}>×</button>
+        </div>
+      </div>
+      
+      <div style={win95.contentArea}>
+        {error && (
+          <div style={win95.errorMessage}>
+            {error}
+          </div>
+        )}
         
-        <Box p={4} bg="gray.50" borderRadius="md" boxShadow="md">
-          <HStack spacing={4}>
-            {/* This would be replaced with actual character avatar */}
-            <Avatar 
-              name={character.name} 
-              bg="pink.500"
-              size="lg"
-            />
-            <Box>
-              <Text fontWeight="bold">{character.name}</Text>
-              <Text fontSize="sm">Chatting as this character</Text>
-            </Box>
-          </HStack>
-        </Box>
-        
-        <Box 
-          p={4} 
-          bg="white" 
-          borderRadius="md" 
-          boxShadow="md"
-          position="sticky"
-          bottom={4}
-        >
-          <form onSubmit={handleSendMessage}>
-            <Flex gap={2}>
-              <Input 
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type your message..."
-                maxLength={maxLength}
-                disabled={isSending}
-              />
-              <Button 
-                type="submit" 
-                colorScheme="pink" 
-                isLoading={isSending}
-                isDisabled={!message.trim()}
-              >
-                Send
-              </Button>
-            </Flex>
-            <Text fontSize="xs" textAlign="right" mt={1} color="gray.500">
-              {message.length}/{maxLength}
-            </Text>
-          </form>
-        </Box>
-      </VStack>
-    </Container>
+        <div style={win95.flexColumn}>
+          {/* Character Info */}
+          <div style={win95.panel}>
+            <div style={{ 
+              display: 'flex' as const, 
+              flexDirection: windowWidth < 600 ? 'column' as const : 'row' as const,
+              alignItems: 'center' as const, 
+              gap: '15px' as const 
+            }}>
+              {/* Character avatar */}
+              <div style={{ textAlign: 'center' as const }}>
+                {renderAvatar()}
+                <p style={{ ...win95.textBold, marginTop: '8px' }}>{character.name}</p>
+              </div>
+              <div style={{ 
+                flex: '1',
+                padding: windowWidth < 600 ? '10px 0' : '0'
+              }}>
+                <p style={win95.text}>Chatting as this character</p>
+                <p style={win95.text}>Use the form below to send messages that will appear in the Dollhouse.</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Chat Controls */}
+          <div style={{
+            ...win95.panel,
+            position: 'sticky' as const,
+            bottom: '4px' as const
+          }}>
+            <form onSubmit={handleSendMessage}>
+              <div style={win95.flexColumn}>
+                <div style={{
+                  display: 'flex' as const,
+                  flexDirection: windowWidth < 600 ? 'column' as const : 'row' as const,
+                  gap: '10px' as const
+                }}>
+                  <input 
+                    style={{
+                      ...win95.input,
+                      flex: windowWidth < 600 ? 'none' : '1' as const
+                    }}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    maxLength={maxLength}
+                    disabled={isSending}
+                  />
+                  <button 
+                    type="submit" 
+                    style={{
+                      ...win95.button,
+                      ...(isSending ? win95.buttonDisabled : {}),
+                      width: windowWidth < 600 ? '100%' : 'auto'
+                    }}
+                    disabled={isSending || !message.trim()}
+                  >
+                    Send
+                  </button>
+                </div>
+                <div style={{ 
+                  display: 'flex' as const, 
+                  justifyContent: 'space-between' as const, 
+                  alignItems: 'center' as const,
+                  marginTop: '10px' as const
+                }}>
+                  <span style={{ ...win95.text, fontSize: '10px' as const }}>
+                    {message.length}/{maxLength}
+                  </span>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

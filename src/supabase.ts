@@ -32,13 +32,5 @@ export type Message = {
 export type AvatarConfig = {
   body: string;
   hair: string;
-  eyes: string;
-  mouth: string;
   outfit: string;
-  accessories?: string[];
-  color_scheme?: {
-    skin: string;
-    hair: string;
-    outfit: string;
-  };
 };
