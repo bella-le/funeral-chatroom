@@ -49,7 +49,6 @@ export default function Event() {
   const [errorPopups, setErrorPopups] = useState<ErrorPopup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showBSOD, setShowBSOD] = useState(false);
-  const [eventStarted, setEventStarted] = useState(false);
   const [botCount, setBotCount] = useState(0);
   
   // Refs for intervals
@@ -178,8 +177,6 @@ export default function Event() {
     // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-      // Start the event automatically
-      setEventStarted(true);
       
       // Add initial bots
       const initialBots = Array(3).fill(null).map(() => generateRandomBot());
