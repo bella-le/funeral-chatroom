@@ -2,20 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, type Character, type AvatarConfig } from '../supabase';
 
-// These would be replaced with your actual assets
-const AVATAR_PARTS = {
-  body: ['body1', 'body2', 'body3'],
-  hair: ['hair1', 'hair2', 'hair3'],
-  outfit: ['outfit1', 'outfit2', 'outfit3']
-};
+// Import shared character assets
+import { AVATAR_PARTS } from '../assets/characterAssets';
 
 export default function CharacterCreator() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
-    body: AVATAR_PARTS.body[0],
-    hair: AVATAR_PARTS.hair[0],
-    outfit: AVATAR_PARTS.outfit[0]
+    body: AVATAR_PARTS.body.length > 0 ? AVATAR_PARTS.body[0].id : '',
+    hair: AVATAR_PARTS.hair.length > 0 ? AVATAR_PARTS.hair[0].id : '',
+    outfit: AVATAR_PARTS.outfit.length > 0 ? AVATAR_PARTS.outfit[0].id : ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -67,64 +63,205 @@ export default function CharacterCreator() {
   };
 
   // Helper function to render avatar part selection
-  const renderPartSelector = (category: keyof typeof AVATAR_PARTS, label: string) => (
-    <div style={{ marginTop: '20px' }}>
-      <label style={{ 
-        fontFamily: 'Tahoma, Arial, sans-serif',
-        fontSize: '11px', 
-        fontWeight: 'bold', 
-        display: 'block', 
-        marginBottom: '6px',
-        color: '#000000'
-      }}>
-        {label}
-      </label>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-        {AVATAR_PARTS[category].map(part => (
-          <div 
-            key={part}
-            style={{ 
-              border: avatarConfig[category] === part 
-                ? '2px solid #0A246A' 
-                : '2px solid #DFDFDF',
-              borderTop: avatarConfig[category] === part 
-                ? '2px solid #0A246A' 
-                : '2px solid #FFFFFF',
-              borderLeft: avatarConfig[category] === part 
-                ? '2px solid #0A246A' 
-                : '2px solid #FFFFFF',
-              padding: '4px', 
-              cursor: 'pointer',
-              backgroundColor: avatarConfig[category] === part ? '#B6BDD2' : '#D4D0C8'
-            }}
-            onClick={() => handlePartChange(category, part)}
-          >
-            {/* This would be replaced with actual images of your character parts */}
-            <div 
-              style={{ 
-                backgroundColor: '#FFFFFF', 
-                border: '1px solid #808080',
-                borderTop: '1px solid #404040',
-                borderLeft: '1px solid #404040',
-                height: '60px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center'
-              }}
-            >
-              <span style={{ 
-                fontFamily: 'Tahoma, Arial, sans-serif',
-                fontSize: '11px',
-                color: '#000000'
-              }}>
-                {part}
-              </span>
-            </div>
-          </div>
-        ))}
+  const renderPartSelector = (category: keyof typeof AVATAR_PARTS, label: string) => {
+    // Handle different part types (body has objects with id and image)
+    const isBodyCategory = category === 'body';
+    
+    return (
+      <div style={{ marginTop: '20px' }}>
+        <label style={{ 
+          fontFamily: 'Tahoma, Arial, sans-serif',
+          fontSize: '11px', 
+          fontWeight: 'bold', 
+          display: 'block', 
+          marginBottom: '6px',
+          color: '#000000'
+        }}>
+          {label}
+        </label>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(3, 1fr)', 
+          gap: '6px',
+          maxHeight: '200px',
+          overflowY: 'auto',
+          padding: '4px',
+          border: '1px solid #808080',
+          borderTop: '1px solid #404040',
+          borderLeft: '1px solid #404040',
+          backgroundColor: '#FFFFFF'
+        }}>
+          {isBodyCategory ? (
+            // Render body parts with actual images
+            AVATAR_PARTS.body.map(part => (
+              <div 
+                key={part.id}
+                style={{ 
+                  border: avatarConfig.body === part.id 
+                    ? '2px solid #0A246A' 
+                    : '2px solid #DFDFDF',
+                  borderTop: avatarConfig.body === part.id 
+                    ? '2px solid #0A246A' 
+                    : '2px solid #FFFFFF',
+                  borderLeft: avatarConfig.body === part.id 
+                    ? '2px solid #0A246A' 
+                    : '2px solid #FFFFFF',
+                  padding: '4px', 
+                  cursor: 'pointer',
+                  backgroundColor: avatarConfig.body === part.id ? '#B6BDD2' : '#D4D0C8',
+                  height: '80px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onClick={() => handlePartChange(category, part.id)}
+              >
+                <img 
+                  src={part.image} 
+                  alt={part.id} 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '100%', 
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
+            ))
+          ) : (
+            // Render other parts (hair, outfit) with images
+            AVATAR_PARTS[category].map(part => (
+              <div 
+                key={part.id}
+                style={{ 
+                  border: avatarConfig[category] === part.id 
+                    ? '2px solid #0A246A' 
+                    : '2px solid #DFDFDF',
+                  borderTop: avatarConfig[category] === part.id 
+                    ? '2px solid #0A246A' 
+                    : '2px solid #FFFFFF',
+                  borderLeft: avatarConfig[category] === part.id 
+                    ? '2px solid #0A246A' 
+                    : '2px solid #FFFFFF',
+                  padding: '4px', 
+                  cursor: 'pointer',
+                  backgroundColor: avatarConfig[category] === part.id ? '#B6BDD2' : '#D4D0C8',
+                  height: '80px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onClick={() => handlePartChange(category, part.id)}
+              >
+                <img 
+                  src={part.image} 
+                  alt={part.id} 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '100%', 
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Character preview component
+  const renderCharacterPreview = () => {
+    // Find the selected assets
+    const selectedBody = AVATAR_PARTS.body.find(part => part.id === avatarConfig.body);
+    const selectedOutfit = AVATAR_PARTS.outfit.find(part => part.id === avatarConfig.outfit);
+    const selectedHair = AVATAR_PARTS.hair.find(part => part.id === avatarConfig.hair);
+    
+    return (
+      <div style={{ 
+        marginTop: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        <label style={{ 
+          fontFamily: 'Tahoma, Arial, sans-serif',
+          fontSize: '11px', 
+          fontWeight: 'bold', 
+          display: 'block', 
+          marginBottom: '6px',
+          color: '#000000'
+        }}>
+          Character Preview
+        </label>
+        <div style={{
+          width: '150px',
+          height: '200px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #808080',
+          borderTop: '1px solid #404040',
+          borderLeft: '1px solid #404040',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative'
+        }}>
+          {/* Body (z-index: 0) */}
+          {selectedBody && (
+            <img 
+              src={selectedBody.image} 
+              alt="Body" 
+              style={{ 
+                position: 'absolute',
+                maxWidth: '80%',
+                maxHeight: '80%',
+                objectFit: 'contain',
+                zIndex: 0,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+          )}
+          
+          {/* Outfit (z-index: 1) */}
+          {selectedOutfit && (
+            <img 
+              src={selectedOutfit.image} 
+              alt="Outfit" 
+              style={{ 
+                position: 'absolute',
+                maxWidth: '80%',
+                maxHeight: '80%',
+                objectFit: 'contain',
+                zIndex: 1,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+          )}
+          
+          {/* Hair (z-index: 2) */}
+          {selectedHair && (
+            <img 
+              src={selectedHair.image} 
+              alt="Hair" 
+              style={{ 
+                position: 'absolute',
+                maxWidth: '80%',
+                maxHeight: '80%',
+                objectFit: 'contain',
+                zIndex: 2,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{
@@ -240,14 +377,62 @@ export default function CharacterCreator() {
                 borderLeft: '1px solid #404040',
                 display: 'flex', 
                 alignItems: 'center', 
-                justifyContent: 'center'
+                justifyContent: 'center',
+                position: 'relative'
               }}>
-                {/* This would be replaced with actual character preview */}
-                <p style={{ 
-                  fontFamily: 'Tahoma, Arial, sans-serif',
-                  fontSize: '11px',
-                  color: '#000000'
-                }}>Character Preview</p>
+                {/* Body (z-index: 0) */}
+                {AVATAR_PARTS.body.find(part => part.id === avatarConfig.body) && (
+                  <img 
+                    src={AVATAR_PARTS.body.find(part => part.id === avatarConfig.body)?.image} 
+                    alt="Body" 
+                    style={{ 
+                      position: 'absolute',
+                      maxWidth: '80%',
+                      maxHeight: '80%',
+                      objectFit: 'contain',
+                      zIndex: 0,
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
+                )}
+                
+                {/* Outfit (z-index: 1) */}
+                {AVATAR_PARTS.outfit.find(part => part.id === avatarConfig.outfit) && (
+                  <img 
+                    src={AVATAR_PARTS.outfit.find(part => part.id === avatarConfig.outfit)?.image} 
+                    alt="Outfit" 
+                    style={{ 
+                      position: 'absolute',
+                      maxWidth: '80%',
+                      maxHeight: '80%',
+                      objectFit: 'contain',
+                      zIndex: 1,
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
+                )}
+                
+                {/* Hair (z-index: 2) */}
+                {AVATAR_PARTS.hair.find(part => part.id === avatarConfig.hair) && (
+                  <img 
+                    src={AVATAR_PARTS.hair.find(part => part.id === avatarConfig.hair)?.image} 
+                    alt="Hair" 
+                    style={{ 
+                      position: 'absolute',
+                      maxWidth: '80%',
+                      maxHeight: '80%',
+                      objectFit: 'contain',
+                      zIndex: 2,
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
+                )}
               </div>
             </div>
 

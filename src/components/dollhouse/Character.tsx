@@ -1,5 +1,6 @@
 import React from 'react';
 import { type Character as CharacterType } from '../../supabase';
+import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS } from '../../assets/characterAssets';
 
 interface CharacterProps {
   character: CharacterType;
@@ -31,7 +32,7 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
         display: 'flex' as const,
         flexDirection: 'column' as const,
         alignItems: 'center' as const,
-        width: '80px',
+        width: '120px',
         zIndex: message ? 2 : 1
       }}
     >
@@ -79,7 +80,7 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         padding: '4px 8px',
         borderRadius: '4px',
-        marginBottom: '5px',
+        marginBottom: '-35px',
         fontSize: '10px',
         fontFamily: '"Press Start 2P", cursive',
         textAlign: 'center' as const,
@@ -93,8 +94,8 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
       
       {/* Character avatar */}
       <div style={{
-        width: '60px',
-        height: '100px',
+        width: '100px',
+        height: '160px',
         // backgroundColor: '#FFF',
         display: 'flex' as const,
         flexDirection: 'column' as const,
@@ -103,46 +104,71 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
         overflow: 'hidden' as const,
         position: 'relative' as const,
       }}>
-        {/* Body */}
-        {body && (
+        {/* Body (z-index: 0) */}
+        {body && BODY_ASSETS[body] && (
           <img 
-            src={`/avatars/body/${body}.png`} 
+            src={BODY_ASSETS[body]} 
             alt="Body" 
             style={{ 
               position: 'absolute' as const,
-              width: '100%',
-              height: 'auto',
-              zIndex: 1
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              zIndex: 0,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
             }}
           />
         )}
         
-        {/* Outfit */}
-        {outfit && (
+        {/* Outfit (z-index: 1) */}
+        {outfit && OUTFIT_ASSETS[outfit] && (
           <img 
-            src={`/avatars/outfit/${outfit}.png`} 
+            src={OUTFIT_ASSETS[outfit]} 
             alt="Outfit" 
             style={{ 
               position: 'absolute' as const,
-              width: '100%',
-              height: 'auto',
-              zIndex: 2
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              zIndex: 1,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
             }}
           />
         )}
         
-        {/* Hair */}
-        {hair && (
+        {/* Hair (z-index: 2) */}
+        {hair && HAIR_ASSETS[hair] && (
           <img 
-            src={`/avatars/hair/${hair}.png`} 
+            src={HAIR_ASSETS[hair]} 
             alt="Hair" 
             style={{ 
               position: 'absolute' as const,
-              width: '100%',
-              height: 'auto',
-              zIndex: 3
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              zIndex: 2,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
             }}
           />
+        )}
+        
+        {/* Fallback if images aren't available */}
+        {(!BODY_ASSETS[body || ''] && !HAIR_ASSETS[hair || ''] && !OUTFIT_ASSETS[outfit || '']) && (
+          <div style={{ 
+            fontSize: '10px',
+            color: '#000',
+            textAlign: 'center' as const
+          }}>
+            Body: {body}<br/>
+            Hair: {hair}<br/>
+            Outfit: {outfit}
+          </div>
         )}
       </div>
     </div>

@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase, type Character, type Message } from '../supabase';
 import { win95 } from '../styles/win95';
 
+// Import shared character assets
+import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS } from '../assets/characterAssets';
+
 export default function Chat() {
   const { characterId } = useParams<{ characterId: string }>();
   const [message, setMessage] = useState('');
@@ -55,6 +58,11 @@ export default function Chat() {
     // Get the avatar parts from the character's configuration
     const { body, hair, outfit } = character.avatar_config;
     
+    // Get the actual asset images
+    const bodyImage = BODY_ASSETS[body];
+    const hairImage = HAIR_ASSETS[hair];
+    const outfitImage = OUTFIT_ASSETS[outfit];
+    
     return (
       <div style={{
         width: windowWidth < 600 ? '120px' : '180px',
@@ -64,55 +72,77 @@ export default function Chat() {
         borderTop: '1px solid #404040',
         borderLeft: '1px solid #404040',
         position: 'relative' as const,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         overflow: 'hidden' as const
       }}>
-        {/* Body */}
-        <div style={{ 
-          position: 'absolute' as const, 
-          top: '0', 
-          left: '0', 
-          width: '100%', 
-          height: '100%',
-          display: 'flex' as const,
-          alignItems: 'center' as const,
-          justifyContent: 'center' as const,
-          fontSize: '10px' as const,
-          color: '#000'
-        }}>
-          {body}
-        </div>
+        {/* Body (z-index: 0) */}
+        {bodyImage && (
+          <img 
+            src={bodyImage} 
+            alt="Body" 
+            style={{ 
+              position: 'absolute',
+              maxWidth: '80%',
+              maxHeight: '80%',
+              objectFit: 'contain',
+              zIndex: 0,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
+            }}
+          />
+        )}
         
-        {/* Hair */}
-        <div style={{ 
-          position: 'absolute' as const, 
-          top: '0', 
-          left: '0', 
-          width: '100%', 
-          height: '40%',
-          display: 'flex' as const,
-          alignItems: 'center' as const,
-          justifyContent: 'center' as const,
-          fontSize: '10px' as const,
-          color: '#000'
-        }}>
-          {hair}
-        </div>
+        {/* Outfit (z-index: 1) */}
+        {outfitImage && (
+          <img 
+            src={outfitImage} 
+            alt="Outfit" 
+            style={{ 
+              position: 'absolute',
+              maxWidth: '80%',
+              maxHeight: '80%',
+              objectFit: 'contain',
+              zIndex: 1,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
+            }}
+          />
+        )}
         
-        {/* Outfit */}
-        <div style={{ 
-          position: 'absolute' as const, 
-          bottom: '0', 
-          left: '0', 
-          width: '100%', 
-          height: '50%',
-          display: 'flex' as const,
-          alignItems: 'center' as const,
-          justifyContent: 'center' as const,
-          fontSize: '10px' as const,
-          color: '#000'
-        }}>
-          {outfit}
-        </div>
+        {/* Hair (z-index: 2) */}
+        {hairImage && (
+          <img 
+            src={hairImage} 
+            alt="Hair" 
+            style={{ 
+              position: 'absolute',
+              maxWidth: '80%',
+              maxHeight: '80%',
+              objectFit: 'contain',
+              zIndex: 2,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
+            }}
+          />
+        )}
+        
+        {/* Fallback if images aren't available */}
+        {(!bodyImage && !hairImage && !outfitImage) && (
+          <div style={{ 
+            fontSize: '10px',
+            color: '#000',
+            textAlign: 'center'
+          }}>
+            Body: {body}<br/>
+            Hair: {hair}<br/>
+            Outfit: {outfit}
+          </div>
+        )}
       </div>
     );
   };
