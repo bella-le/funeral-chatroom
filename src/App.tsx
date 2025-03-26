@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import CharacterCreator from './pages/CharacterCreator'
 import Chat from './pages/Chat'
 import Dollhouse from './pages/Dollhouse'
+import Event from './pages/Event'
 
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<CharacterCreator />} />
         <Route path="/chat/:characterId" element={<Chat />} />
         <Route path="/dollhouse" element={<Dollhouse />} />
+        <Route path="/event" element={<Event />} />
       </Routes>
     </BrowserRouter>
   )

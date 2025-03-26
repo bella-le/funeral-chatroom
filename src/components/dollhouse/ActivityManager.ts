@@ -92,11 +92,14 @@ export class ActivityManager {
   isCharacterActive(characterId: string | undefined): boolean {
     if (!characterId) return true; // Consider characters without IDs as active
     
-    const now = Date.now();
-    const activity = this.activityRecords.find(a => a.characterId === characterId);
+    // Always consider characters active - this ensures they don't despawn
+    // We'll still track activity for potential future use
+    return true;
     
-    // If we have no activity record, or if the last activity is within threshold
-    return !activity || (now - activity.lastActive) < this.inactivityThreshold;
+    // Original implementation (commented out):
+    // const now = Date.now();
+    // const activity = this.activityRecords.find(a => a.characterId === characterId);
+    // return !activity || (now - activity.lastActive) < this.inactivityThreshold;
   }
   
   /**

@@ -157,20 +157,21 @@ export default function Dollhouse() {
         </div>
       )}
       
-      {/* Characters in the room */}
+      {/* Characters scattered across the room */}
       <div style={{ 
         position: 'absolute' as const,
-        bottom: '40px',
+        top: 0,
         left: 0,
         right: 0,
-        display: 'flex' as const, 
-        flexWrap: 'wrap' as const, 
-        justifyContent: 'center' as const,
-        alignItems: 'flex-end' as const,
+        bottom: 0,
         padding: '0 20px'
       }}>
         {activeCharacters.length === 0 ? (
           <div style={{ 
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             backgroundColor: 'rgba(255, 255, 255, 0.7)',
             padding: '10px 20px',
             borderRadius: '5px',
@@ -179,13 +180,31 @@ export default function Dollhouse() {
             <p style={win95.text}>No characters have joined yet</p>
           </div>
         ) : (
-          activeCharacters.map((character) => (
-            <CharacterComponent 
-              key={character.id}
-              character={character}
-              message={recentMessages[character.id || '']}
-            />
-          ))
+          activeCharacters.map((character, index) => {
+            // Generate a unique but consistent position for each character
+            // Use character ID or index to ensure consistency
+            const seed = character.id ? character.id.charCodeAt(0) + index : index;
+            const randomLeft = `${5 + (seed * 13 + index * 17) % 85}%`;
+            const randomBottom = `${5 + (seed * 7 + index * 11) % 70}%`;
+            const randomZIndex = 10 + ((seed + index * 5) % 90); // 10 to 99
+            
+            return (
+              <div 
+                key={character.id}
+                style={{
+                  position: 'absolute',
+                  left: randomLeft,
+                  bottom: randomBottom,
+                  zIndex: randomZIndex
+                }}
+              >
+                <CharacterComponent 
+                  character={character}
+                  message={recentMessages[character.id || '']}
+                />
+              </div>
+            );
+          })
         )}
       </div>
     </div>
