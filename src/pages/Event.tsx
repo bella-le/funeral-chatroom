@@ -48,6 +48,7 @@ export default function Event() {
   const [botMessages, setBotMessages] = useState<{[key: string]: BotMessage}>({});
   const [errorPopups, setErrorPopups] = useState<ErrorPopup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [eventStarted, setEventStarted] = useState(false);
   const [showBSOD, setShowBSOD] = useState(false);
   const [botCount, setBotCount] = useState(0);
   
@@ -163,12 +164,8 @@ export default function Event() {
     }, 100); // Update every 100ms for smooth fading
     
     return () => {
-      // Clean up all intervals and timeouts on unmount
+      // Clean up fade interval on unmount
       if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
-      if (botSpawnIntervalRef.current) clearInterval(botSpawnIntervalRef.current);
-      if (quoteIntervalRef.current) clearInterval(quoteIntervalRef.current);
-      if (errorPopupIntervalRef.current) clearInterval(errorPopupIntervalRef.current);
-      if (bsodTimeoutRef.current) clearTimeout(bsodTimeoutRef.current);
     };
   }, []);
   
@@ -177,91 +174,127 @@ export default function Event() {
     // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false);
+      setEventStarted(true);
       
       // Add initial bots
       const initialBots = Array(3).fill(null).map(() => generateRandomBot());
       setBotCharacters(initialBots);
       setBotCount(3);
-      
-      // Set up interval to spawn more bots over time
-      botSpawnIntervalRef.current = setInterval(() => {
-        // Add more bots at an increasing rate
-        const newBotsCount = Math.min(3, Math.floor(botCount / 5) + 1);
-        const newBots = Array(newBotsCount).fill(null).map(() => generateRandomBot());
-        
-        setBotCharacters(prev => [...prev, ...newBots]);
-        setBotCount(prev => prev + newBotsCount);
-      }, 3000); // Add bots every 3 seconds
-      
-      // Set up interval for bots to send messages
-      quoteIntervalRef.current = setInterval(() => {
-        // Select random bots to send messages
-        setBotCharacters(prevBots => {
-          if (prevBots.length === 0) return prevBots;
-          
-          // Determine how many bots will send messages (25-50% of bots)
-          const messagingBotsCount = Math.max(1, Math.floor(prevBots.length * (Math.random() * 0.25 + 0.25)));
-          const botIndices = new Set<number>();
-          
-          // Select random bots
-          while (botIndices.size < messagingBotsCount) {
-            botIndices.add(Math.floor(Math.random() * prevBots.length));
-          }
-          
-          // Add messages for selected bots
-          botIndices.forEach(index => {
-            const bot = prevBots[index];
-            if (bot) {
-              setBotMessages(prev => ({
-                ...prev,
-                [bot.id]: {
-                  characterId: bot.id,
-                  content: getRandomQuote(),
-                  opacity: 1.0,
-                  timestamp: Date.now()
-                }
-              }));
-            }
-          });
-          
-          return prevBots;
-        });
-      }, 1000); // Send messages every second
-      
-      // Set up error popup interval (start after 15 seconds)
-      setTimeout(() => {
-        errorPopupIntervalRef.current = setInterval(() => {
-          // Create a new error popup
-          const newPopup: ErrorPopup = {
-            id: `error_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            left: `${Math.floor(Math.random() * 70) + 10}%`,
-            top: `${Math.floor(Math.random() * 70) + 10}%`,
-            scale: 0.7 + Math.random() * 0.6,
-            rotation: `${Math.floor(Math.random() * 10) - 5}deg`,
-            opacity: 1.0,
-            timestamp: Date.now()
-          };
-          
-          setErrorPopups(prev => [...prev, newPopup]);
-          
-          // Increase frequency as we get closer to BSOD
-        }, 3000); // New error every 3 seconds
-      }, 15000); // Start showing errors after 15 seconds
-      
-      // Set up BSOD timeout
-      bsodTimeoutRef.current = setTimeout(() => {
-        setShowBSOD(true);
-        
-        // Clean up intervals when BSOD shows
-        if (botSpawnIntervalRef.current) clearInterval(botSpawnIntervalRef.current);
-        if (quoteIntervalRef.current) clearInterval(quoteIntervalRef.current);
-        if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
-        if (errorPopupIntervalRef.current) clearInterval(errorPopupIntervalRef.current);
-      }, 40000); // Show BSOD after 60 seconds
     }, 1500);
     
     return () => clearTimeout(timer);
-  }, [botCount]);
+  }, []);
+  
+  // Effect for bot spawning - separate from initialization
+  useEffect(() => {
+    if (!eventStarted) return;
+    
+    // Set up interval to spawn more bots over time
+    botSpawnIntervalRef.current = setInterval(() => {
+      // Add more bots at an increasing rate
+      const newBotsCount = Math.min(3, Math.floor(botCount / 5) + 1);
+      const newBots = Array(newBotsCount).fill(null).map(() => generateRandomBot());
+      
+      setBotCharacters(prev => [...prev, ...newBots]);
+      setBotCount(prev => prev + newBotsCount);
+    }, 3000); // Add bots every 3 seconds
+    
+    return () => {
+      if (botSpawnIntervalRef.current) clearInterval(botSpawnIntervalRef.current);
+    };
+  }, [eventStarted, botCount]);
+  
+  // Effect for bot messaging - separate from spawning
+  useEffect(() => {
+    if (!eventStarted) return;
+    
+    // Set up interval for bots to send messages
+    quoteIntervalRef.current = setInterval(() => {
+      setBotCharacters(prevBots => {
+        if (prevBots.length === 0) return prevBots;
+        
+        // Determine how many bots will send messages (25-50% of bots)
+        const messagingBotsCount = Math.max(1, Math.floor(prevBots.length * (Math.random() * 0.25 + 0.25)));
+        const botIndices = new Set<number>();
+        
+        // Select random bots
+        while (botIndices.size < messagingBotsCount) {
+          botIndices.add(Math.floor(Math.random() * prevBots.length));
+        }
+        
+        // Add messages for selected bots without modifying the bots themselves
+        botIndices.forEach(index => {
+          const bot = prevBots[index];
+          if (bot) {
+            setBotMessages(prev => ({
+              ...prev,
+              [bot.id]: {
+                characterId: bot.id,
+                content: getRandomQuote(),
+                opacity: 1.0,
+                timestamp: Date.now()
+              }
+            }));
+          }
+        });
+        
+        // Return the exact same array to avoid re-rendering the bots
+        return prevBots;
+      });
+    }, 1000); // Send messages every second
+    
+    return () => {
+      if (quoteIntervalRef.current) clearInterval(quoteIntervalRef.current);
+    };
+  }, [eventStarted]);
+      
+  // Effect for error popups - separate effect
+  useEffect(() => {
+    if (!eventStarted) return;
+    
+    // Start showing errors after 15 seconds
+    const errorStartTimeout = setTimeout(() => {
+      errorPopupIntervalRef.current = setInterval(() => {
+        // Create a new error popup
+        const newPopup: ErrorPopup = {
+          id: `error_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          left: `${Math.floor(Math.random() * 70) + 10}%`,
+          top: `${Math.floor(Math.random() * 70) + 10}%`,
+          scale: 0.7 + Math.random() * 0.6,
+          rotation: `${Math.floor(Math.random() * 10) - 5}deg`,
+          opacity: 1.0,
+          timestamp: Date.now()
+        };
+        
+        setErrorPopups(prev => [...prev, newPopup]);
+      }, 3000); // New error every 3 seconds
+    }, 15000);
+    
+    return () => {
+      clearTimeout(errorStartTimeout);
+      if (errorPopupIntervalRef.current) clearInterval(errorPopupIntervalRef.current);
+    };
+  }, [eventStarted]);
+  
+  // Effect for BSOD - separate effect
+  useEffect(() => {
+    if (!eventStarted) return;
+    
+    // Set up BSOD timeout
+    bsodTimeoutRef.current = setTimeout(() => {
+      setShowBSOD(true);
+      
+      // Clean up intervals when BSOD shows
+      if (botSpawnIntervalRef.current) clearInterval(botSpawnIntervalRef.current);
+      if (quoteIntervalRef.current) clearInterval(quoteIntervalRef.current);
+      if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
+      if (errorPopupIntervalRef.current) clearInterval(errorPopupIntervalRef.current);
+    }, 40000); // Show BSOD after 40 seconds
+    
+    return () => {
+      if (bsodTimeoutRef.current) clearTimeout(bsodTimeoutRef.current);
+    };
+  }, [eventStarted]);
 
   if (isLoading) {
     return (
@@ -279,7 +312,7 @@ export default function Event() {
           borderRadius: '5px',
           boxShadow: '0 0 10px rgba(255,255,255,0.3)'
         }}>
-          <p style={win95.text}>Loading the event...</p>
+          <p style={win95.text}>Loading...</p>
         </div>
       </div>
     );
