@@ -204,6 +204,11 @@ export default function Event() {
     };
   }, [eventStarted, botCount]);
   
+  // Track which bots recently sent messages to avoid repeats
+  const [recentlyActiveBotsRef] = useState<{current: Set<string>}>({
+    current: new Set<string>()
+  });
+  
   // Effect for bot messaging - separate from spawning
   useEffect(() => {
     if (!eventStarted) return;
@@ -213,35 +218,50 @@ export default function Event() {
       setBotCharacters(prevBots => {
         if (prevBots.length === 0) return prevBots;
         
-        // Determine how many bots will send messages (25-50% of bots)
-        const messagingBotsCount = Math.max(1, Math.floor(prevBots.length * (Math.random() * 0.25 + 0.25)));
-        const botIndices = new Set<number>();
+        // Filter out bots that recently sent messages
+        const availableBots = prevBots.filter(bot => !recentlyActiveBotsRef.current.has(bot.id));
         
-        // Select random bots
-        while (botIndices.size < messagingBotsCount) {
-          botIndices.add(Math.floor(Math.random() * prevBots.length));
+        // If all bots have recently sent messages, clear the tracking and use all bots
+        if (availableBots.length === 0) {
+          recentlyActiveBotsRef.current.clear();
+          // Skip this round to avoid immediate repeats
+          return prevBots;
         }
         
+        // Determine how many bots will send messages (25-50% of available bots)
+        const messagingBotsCount = Math.max(1, Math.floor(availableBots.length * (Math.random() * 0.25 + 0.25)));
+        const selectedBots: BotCharacter[] = [];
+        
+        // Randomly select bots from available ones
+        const shuffledBots = [...availableBots].sort(() => Math.random() - 0.5);
+        selectedBots.push(...shuffledBots.slice(0, messagingBotsCount));
+        
         // Add messages for selected bots without modifying the bots themselves
-        botIndices.forEach(index => {
-          const bot = prevBots[index];
-          if (bot) {
-            setBotMessages(prev => ({
-              ...prev,
-              [bot.id]: {
-                characterId: bot.id,
-                content: getRandomQuote(),
-                opacity: 1.0,
-                timestamp: Date.now()
-              }
-            }));
-          }
+        selectedBots.forEach(bot => {
+          // Track this bot as recently active
+          recentlyActiveBotsRef.current.add(bot.id);
+          
+          setBotMessages(prev => ({
+            ...prev,
+            [bot.id]: {
+              characterId: bot.id,
+              content: getRandomQuote(),
+              opacity: 1.0,
+              timestamp: Date.now()
+            }
+          }));
         });
         
         // Return the exact same array to avoid re-rendering the bots
         return prevBots;
       });
-    }, 1000); // Send messages every second
+      
+      // Clear old entries from recently active bots after a cycle
+      setTimeout(() => {
+        recentlyActiveBotsRef.current.clear();
+      }, 8000); // Clear after two message cycles
+      
+    }, 4000); // Send messages every 4 seconds
     
     return () => {
       if (quoteIntervalRef.current) clearInterval(quoteIntervalRef.current);
