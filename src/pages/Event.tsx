@@ -58,6 +58,7 @@ export default function Event() {
   const quoteIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const errorPopupIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const bsodTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const eventStartTime = useRef<number>(0); // Track when the event started
   
   // Helper function to generate random bot characters
   const generateRandomBot = () => {
@@ -176,6 +177,9 @@ export default function Event() {
       setIsLoading(false);
       setEventStarted(true);
       
+      // Record event start time
+      eventStartTime.current = Date.now();
+      
       // Add initial bots
       const initialBots = Array(3).fill(null).map(() => generateRandomBot());
       setBotCharacters(initialBots);
@@ -192,12 +196,13 @@ export default function Event() {
     // Set up interval to spawn more bots over time
     botSpawnIntervalRef.current = setInterval(() => {
       // Add more bots at an increasing rate
-      const newBotsCount = Math.min(3, Math.floor(botCount / 5) + 1);
+      // Adjusted to be more gradual over 10 minutes
+      const newBotsCount = Math.min(3, Math.floor(botCount / 10) + 1);
       const newBots = Array(newBotsCount).fill(null).map(() => generateRandomBot());
       
       setBotCharacters(prev => [...prev, ...newBots]);
       setBotCount(prev => prev + newBotsCount);
-    }, 3000); // Add bots every 3 seconds
+    }, 15000); // Add bots every 15 seconds (slowed down from 3 seconds)
     
     return () => {
       if (botSpawnIntervalRef.current) clearInterval(botSpawnIntervalRef.current);
@@ -228,8 +233,11 @@ export default function Event() {
           return prevBots;
         }
         
-        // Determine how many bots will send messages (25-50% of available bots)
-        const messagingBotsCount = Math.max(1, Math.floor(availableBots.length * (Math.random() * 0.25 + 0.25)));
+        // Determine how many bots will send messages
+        // Adjusted to scale with time - more messages as we get closer to BSOD
+        const timeElapsed = Date.now() - eventStartTime.current;
+        const progressRatio = Math.min(1, timeElapsed / (10 * 60 * 1000)); // 0 to 1 over 10 minutes
+        const messagingBotsCount = Math.max(1, Math.floor(availableBots.length * (0.1 + progressRatio * 0.4)));
         const selectedBots: BotCharacter[] = [];
         
         // Randomly select bots from available ones
@@ -272,7 +280,7 @@ export default function Event() {
   useEffect(() => {
     if (!eventStarted) return;
     
-    // Start showing errors after 15 seconds
+    // Start showing errors after 3 minutes (scaled up from 15 seconds)
     const errorStartTimeout = setTimeout(() => {
       errorPopupIntervalRef.current = setInterval(() => {
         // Create a new error popup
@@ -287,8 +295,8 @@ export default function Event() {
         };
         
         setErrorPopups(prev => [...prev, newPopup]);
-      }, 3000); // New error every 3 seconds
-    }, 15000);
+      }, 8000); // New error every 8 seconds (slowed down from 3 seconds)
+    }, 3 * 60 * 1000); // 3 minutes
     
     return () => {
       clearTimeout(errorStartTimeout);
@@ -309,7 +317,7 @@ export default function Event() {
       if (quoteIntervalRef.current) clearInterval(quoteIntervalRef.current);
       if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
       if (errorPopupIntervalRef.current) clearInterval(errorPopupIntervalRef.current);
-    }, 40000); // Show BSOD after 40 seconds
+    }, 10 * 60 * 1000); // Show BSOD after 10 minutes
     
     return () => {
       if (bsodTimeoutRef.current) clearTimeout(bsodTimeoutRef.current);
