@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { type Character } from '../supabase';
 import { win95 } from '../styles/win95';
-import roomBackground from '../assets/dollhouse/room_15.gif';
+import roomBackground from '../assets/dollhouse/clubpenguin.png';
 
 // Import components and services
 import CharacterComponent from '../components/dollhouse/Character';
