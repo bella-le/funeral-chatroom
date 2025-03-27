@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { win95 } from '../styles/win95';
-import roomBackground from '../assets/dollhouse/room_15.gif';
+import roomBackground from '../assets/dollhouse/clubpenguin.png';
 import bsodImage from '../assets/bot_event/bsod.png';
 import errorImage from '../assets/bot_event/error.png';
 import botQuotes from '../bot_quotes.json';

@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { type Character } from '../supabase';
 import { win95 } from '../styles/win95';
-import roomBackground from '../assets/dollhouse/clubpenguin.png';
+
+// Import all background images
+import clubpenguin from '../assets/dollhouse/clubpenguin.png';
+import dojo from '../assets/dollhouse/dojo.png';
+import habbo from '../assets/dollhouse/habbo.png';
+import pixieHollow from '../assets/dollhouse/pixie hollow.png';
 
 // Import components and services
 import CharacterComponent from '../components/dollhouse/Character';
@@ -10,6 +15,14 @@ import ActivityManager from '../components/dollhouse/ActivityManager';
 import MessageManager from '../components/dollhouse/MessageManager';
 
 export default function Dollhouse() {
+  // Background image configuration
+  const backgroundImages = [
+    { src: clubpenguin, name: 'Club Penguin' },
+    { src: dojo, name: 'Dojo' },
+    { src: habbo, name: 'Habbo Hotel' },
+    { src: pixieHollow, name: 'Pixie Hollow' }
+  ];
+  
   // State management
   const [characters, setCharacters] = useState<Character[]>([]);
   const [activeCharacters, setActiveCharacters] = useState<Character[]>([]);
@@ -17,10 +30,25 @@ export default function Dollhouse() {
   const [recentMessages, setRecentMessages] = useState<{[key: string]: DisplayMessage}>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
   
   // Initialize managers
   const [activityManager] = useState(new ActivityManager());
   const [messageManager] = useState(new MessageManager());
+  
+  // Effect to cycle backgrounds every 15 minutes
+  useEffect(() => {
+    // Set initial background randomly
+    setCurrentBackgroundIndex(Math.floor(Math.random() * backgroundImages.length));
+    
+    // Set up interval to change background every 15 minutes
+    const backgroundInterval = setInterval(() => {
+      setCurrentBackgroundIndex(prevIndex => (prevIndex + 1) % backgroundImages.length);
+      console.log(`Background changed to: ${backgroundImages[(currentBackgroundIndex + 1) % backgroundImages.length].name}`);
+    }, 15 * 60 * 1000); // 15 minutes in milliseconds
+    
+    return () => clearInterval(backgroundInterval);
+  }, [backgroundImages.length]);
   
   // Effect to handle fading out messages
   useEffect(() => {
@@ -136,7 +164,7 @@ export default function Dollhouse() {
       padding: 0,
       overflow: 'hidden',
       backgroundColor: '#302f29',
-      backgroundImage: `url(${roomBackground})`,
+      backgroundImage: `url(${backgroundImages[currentBackgroundIndex].src})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
