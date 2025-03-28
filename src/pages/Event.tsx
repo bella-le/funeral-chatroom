@@ -7,7 +7,7 @@ import botQuotes from '../bot_quotes.json';
 
 // Import components
 import CharacterComponent from '../components/dollhouse/Character';
-import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS, getBodyTypeFromId } from '../assets/characterAssets';
+import { OUTFIT_ASSETS, CATEGORIZED_BODY_ASSETS, CATEGORIZED_HAIR_ASSETS } from '../assets/characterAssets';
 
 // Define types
 interface BotCharacter {
@@ -62,9 +62,13 @@ export default function Event() {
   
   // Helper function to generate random bot characters
   const generateRandomBot = () => {
-    // Get random assets
-    const bodyKeys = Object.keys(BODY_ASSETS);
-    const hairKeys = Object.keys(HAIR_ASSETS);
+    // Randomly choose a body type (regular or barbie)
+    const bodyTypes = ['regular', 'barbie'];
+    const randomBodyType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)] as 'regular' | 'barbie';
+    
+    // Get random assets from the appropriate category
+    const bodyKeys = Object.keys(CATEGORIZED_BODY_ASSETS[randomBodyType]);
+    const hairKeys = Object.keys(CATEGORIZED_HAIR_ASSETS[randomBodyType]);
     const outfitKeys = Object.keys(OUTFIT_ASSETS);
     
     const randomBody = bodyKeys[Math.floor(Math.random() * bodyKeys.length)];
@@ -85,9 +89,6 @@ export default function Event() {
     // Simple random ID (timestamp + random number)
     const randomId = `bot_${Date.now()}_${botNumber}`;
     
-    // Check if it's a Barbie body type (which doesn't need an outfit)
-    const bodyType = getBodyTypeFromId(randomBody);
-    
     return {
       id: randomId,
       name: botName,
@@ -95,7 +96,7 @@ export default function Event() {
         body: randomBody,
         hair: randomHair,
         // Only include outfit for regular body types
-        outfit: bodyType === 'regular' ? randomOutfit : ''
+        outfit: randomBodyType === 'regular' ? randomOutfit : ''
       },
       position: {
         left: randomLeft,

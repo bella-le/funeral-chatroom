@@ -10,7 +10,7 @@ import pixieHollow from '../assets/dollhouse/pixie hollow.png';
 import botQuotes from '../bot_quotes.json';
 
 // Import character assets for bot generation
-import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS } from '../assets/characterAssets';
+import { OUTFIT_ASSETS, CATEGORIZED_BODY_ASSETS, CATEGORIZED_HAIR_ASSETS } from '../assets/characterAssets';
 
 // Import components and services
 import CharacterComponent from '../components/dollhouse/Character';
@@ -66,9 +66,13 @@ export default function Dollhouse() {
   
   // Helper function to generate random bot characters
   const generateRandomBot = () => {
-    // Get random assets
-    const bodyKeys = Object.keys(BODY_ASSETS);
-    const hairKeys = Object.keys(HAIR_ASSETS);
+    // Randomly choose a body type (regular or barbie)
+    const bodyTypes = ['regular', 'barbie'];
+    const randomBodyType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)] as 'regular' | 'barbie';
+    
+    // Get random assets from the appropriate category
+    const bodyKeys = Object.keys(CATEGORIZED_BODY_ASSETS[randomBodyType]);
+    const hairKeys = Object.keys(CATEGORIZED_HAIR_ASSETS[randomBodyType]);
     const outfitKeys = Object.keys(OUTFIT_ASSETS);
     
     const randomBody = bodyKeys[Math.floor(Math.random() * bodyKeys.length)];
@@ -95,7 +99,8 @@ export default function Dollhouse() {
       avatar_config: {
         body: randomBody,
         hair: randomHair,
-        outfit: randomOutfit
+        // Only include outfit for regular body types
+        outfit: randomBodyType === 'regular' ? randomOutfit : ''
       },
       position: {
         left: randomLeft,
