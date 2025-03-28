@@ -1,7 +1,7 @@
 import { DisplayMessage } from './SupabaseService';
 
 // Default message display duration (7 seconds)
-const DEFAULT_MESSAGE_DURATION = 7000;
+const DEFAULT_MESSAGE_DURATION = 14000;
 
 export class MessageManager {
   private messages: {[key: string]: DisplayMessage};
