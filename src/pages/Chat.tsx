@@ -4,7 +4,7 @@ import { supabase, type Character, type Message } from '../supabase';
 import { win95 } from '../styles/win95';
 
 // Import shared character assets
-import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS } from '../assets/characterAssets';
+import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS, getBodyTypeFromId } from '../assets/characterAssets';
 
 export default function Chat() {
   const { characterId } = useParams<{ characterId: string }>();
@@ -95,8 +95,8 @@ export default function Chat() {
           />
         )}
         
-        {/* Outfit (z-index: 1) */}
-        {outfitImage && (
+        {/* Outfit (z-index: 1) - only shown for regular body types */}
+        {outfitImage && getBodyTypeFromId(body || '') === 'regular' && (
           <img 
             src={outfitImage} 
             alt="Outfit" 

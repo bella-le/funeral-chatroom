@@ -1,6 +1,6 @@
 import React from 'react';
 import { type Character as CharacterType } from '../../supabase';
-import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS } from '../../assets/characterAssets';
+import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS, getBodyTypeFromId } from '../../assets/characterAssets';
 
 interface CharacterProps {
   character: CharacterType;
@@ -80,7 +80,8 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         padding: '4px 8px',
         borderRadius: '4px',
-        marginBottom: '-35px',
+        // Position nametag higher for Barbie body type
+        marginBottom: getBodyTypeFromId(character.avatar_config?.body || '') === 'barbie' ? '10px' : '-35px',
         fontSize: '10px',
         fontFamily: '"Press Start 2P", cursive',
         textAlign: 'center' as const,
@@ -122,8 +123,8 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
           />
         )}
         
-        {/* Outfit (z-index: 1) */}
-        {outfit && OUTFIT_ASSETS[outfit] && (
+        {/* Outfit (z-index: 1) - only shown for regular body types */}
+        {outfit && OUTFIT_ASSETS[outfit] && getBodyTypeFromId(body || '') === 'regular' && (
           <img 
             src={OUTFIT_ASSETS[outfit]} 
             alt="Outfit" 
@@ -159,7 +160,7 @@ export const Character: React.FC<CharacterProps> = ({ character, message }) => {
         )}
         
         {/* Fallback if images aren't available */}
-        {(!BODY_ASSETS[body || ''] && !HAIR_ASSETS[hair || ''] && !OUTFIT_ASSETS[outfit || '']) && (
+        {(!BODY_ASSETS[body || ''] && !HAIR_ASSETS[hair || ''] && (getBodyTypeFromId(body || '') === 'regular' ? !OUTFIT_ASSETS[outfit || ''] : false)) && (
           <div style={{ 
             fontSize: '10px',
             color: '#000',

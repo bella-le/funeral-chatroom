@@ -7,7 +7,7 @@ import botQuotes from '../bot_quotes.json';
 
 // Import components
 import CharacterComponent from '../components/dollhouse/Character';
-import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS } from '../assets/characterAssets';
+import { BODY_ASSETS, HAIR_ASSETS, OUTFIT_ASSETS, getBodyTypeFromId } from '../assets/characterAssets';
 
 // Define types
 interface BotCharacter {
@@ -85,13 +85,17 @@ export default function Event() {
     // Simple random ID (timestamp + random number)
     const randomId = `bot_${Date.now()}_${botNumber}`;
     
+    // Check if it's a Barbie body type (which doesn't need an outfit)
+    const bodyType = getBodyTypeFromId(randomBody);
+    
     return {
       id: randomId,
       name: botName,
       avatar_config: {
         body: randomBody,
         hair: randomHair,
-        outfit: randomOutfit
+        // Only include outfit for regular body types
+        outfit: bodyType === 'regular' ? randomOutfit : ''
       },
       position: {
         left: randomLeft,
